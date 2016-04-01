@@ -354,7 +354,7 @@ def mt_measure(d1, d2, dt, tapers, wvec, df, nlen_f, waterlevel_mtm,
     # water level
     wtr_use = max(abs(bot_tf[0:fnum])) * waterlevel_mtm ** 2
 
-    # transfrer function
+    # transfer function
     trans_func = np.zeros(nlen_f, dtype=complex)
     for i in range(nfreq_min, nfreq_max):
         if abs(bot_tf[i]) < wtr_use:
@@ -378,24 +378,7 @@ def mt_measure(d1, d2, dt, tapers, wvec, df, nlen_f, waterlevel_mtm,
 
     abs_w[nfreq_min:nfreq_max] = np.abs(trans_func[nfreq_min:nfreq_max])
 
-    # cycle-skipping (check smoothness of phi, add cc measure, future
-    # implementation)
-    for iw in range(nfreq_min + 1, nfreq_max - 1):
-        smth = abs(phi_w[iw + 1] + phi_w[iw - 1] - 2.0 * phi_w[iw])
-        smth1 = abs((phi_w[iw + 1] + 2*np.pi) + phi_w[iw - 1] - 2.0*phi_w[iw])
-        smth2 = abs((phi_w[iw + 1] - 2*np.pi) + phi_w[iw - 1] - 2.0*phi_w[iw])
-
-        if smth1 < smth and smth1 < smth2 and \
-                abs(phi_w[iw] - phi_w[iw + 1]) > phase_step:
-            logger.warning('2pi phase shift at {0} w={1} diff={2}'.format(
-                iw, wvec[iw], phi_w[iw] - phi_w[iw + 1]))
-            phi_w[iw + 1:nfreq_max] = phi_w[iw + 1:nfreq_max] + 2 * np.pi
-
-        if smth2 < smth and smth2 < smth1 and \
-                abs(phi_w[iw] - phi_w[iw + 1]) > phase_step:
-            logger.warning('-2pi phase shift at {0} w={1} diff={2}'.format(
-                iw, wvec[iw], phi_w[iw] - phi_w[iw + 1]))
-            phi_w[iw + 1:nfreq_max] = phi_w[iw + 1:nfreq_max] - 2 * np.pi
+    process_cycle_skipping(nfreq_max, nfreq_min, phase_step, wvec, phi_w)
 
     # add the CC measurements to the transfer function
     dtau_w[0] = cc_tshift
@@ -406,6 +389,27 @@ def mt_measure(d1, d2, dt, tapers, wvec, df, nlen_f, waterlevel_mtm,
     dlna_w[nfreq_min:nfreq_max] = np.log(abs_w[nfreq_min:nfreq_max]) + cc_dlna
 
     return phi_w, abs_w, dtau_w, dlna_w
+
+
+def process_cycle_skipping(nfreq_max, nfreq_min, phase_step, wvec, phi_w):
+    # cycle-skipping (check smoothness of phi, add cc measure, future
+    # implementation)
+    for iw in range(nfreq_min + 1, nfreq_max - 1):
+        smth = abs(phi_w[iw + 1] + phi_w[iw - 1] - 2.0*phi_w[iw])
+        smth1 = abs((phi_w[iw + 1] + 2*np.pi) + phi_w[iw - 1] - 2.0*phi_w[iw])
+        smth2 = abs((phi_w[iw + 1] - 2*np.pi) + phi_w[iw - 1] - 2.0*phi_w[iw])
+
+        if smth1 < smth and smth1 < smth2 and \
+                        abs(phi_w[iw] - phi_w[iw + 1]) > phase_step:
+            logger.warning('2pi phase shift at {0} w={1} diff={2}'.format(
+                iw, wvec[iw], phi_w[iw] - phi_w[iw + 1]))
+            phi_w[iw + 1:nfreq_max] = phi_w[iw + 1:nfreq_max] + 2*np.pi
+
+        if smth2 < smth and smth2 < smth1 and \
+                        abs(phi_w[iw] - phi_w[iw + 1]) > phase_step:
+            logger.warning('-2pi phase shift at {0} w={1} diff={2}'.format(
+                iw, wvec[iw], phi_w[iw] - phi_w[iw + 1]))
+            phi_w[iw + 1:nfreq_max] = phi_w[iw + 1:nfreq_max] - 2*np.pi
 
 
 def mt_error(d1, d2, deltat, tapers, wvec, df, nlen_f, waterlevel_mtm,

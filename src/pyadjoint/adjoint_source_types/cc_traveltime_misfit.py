@@ -164,6 +164,7 @@ def subsample_xcorr_shift(d, s):
             warnings.warn("Using xcorr_pick_correction requires obsy version "
                           "to be at least 1.0.1")
 
+
 def calculate_adjoint_source(observed, synthetic, config, window,
                              adjoint_src, figure):  # NOQA
 
