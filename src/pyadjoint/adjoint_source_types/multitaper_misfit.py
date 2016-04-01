@@ -133,11 +133,8 @@ def cc_error(d1, d2, deltat, cc_shift, cc_dlna, sigma_dt_min, sigma_dlna_min):
     sigma_dt = np.sqrt(sigma_dt_top / sigma_dt_bot)
     sigma_dlna = np.sqrt(sigma_dlna_top / sigma_dlna_bot)
 
-    if sigma_dt < sigma_dt_min:
-            sigma_dt = sigma_dt_min
-
-    if sigma_dlna < sigma_dlna_min:
-                sigma_dlna = sigma_dlna_min
+    sigma_dt = min(sigma_dt, sigma_dt_min)
+    sigma_dlna = min(sigma_dlna, sigma_dlna_min)
 
     return sigma_dt, sigma_dlna
 
@@ -214,10 +211,9 @@ def get_min_frequency_limit(deltat, df, fnum, i_ampmax, ifreq_min,
                                                s_spectra, water_threshold)
 
     # assume there are at least N cycles within the window
-    nfreq_min = max(nfreq_min, int(ncycle_in_window/(nlen*deltat)/df) - 1)
-    nfreq_min = max(nfreq_min, ifreq_min)
-
-    return nfreq_min
+    return max(nfreq_min,
+               int(ncycle_in_window/(nlen*deltat)/df) - 1,
+               ifreq_min)
 
 
 def get_max_frequency_limit(deltat, df, fnum, i_ampmax, ifreq_max, s_spectra,
@@ -230,10 +226,7 @@ def get_max_frequency_limit(deltat, df, fnum, i_ampmax, ifreq_max, s_spectra,
             nfreq_max = search_frequency_limit(is_search, iw, nfreq_max,
                                                s_spectra, water_threshold)
     # Don't go beyond the Nyquist frequency
-    nfreq_max = min(nfreq_max, int(1.0/(2*deltat)/df) - 1)
-    nfreq_max = min(nfreq_max, ifreq_max)
-
-    return nfreq_max
+    return min(nfreq_max, int(1.0/(2*deltat)/df) - 1, ifreq_max)
 
 
 def search_frequency_limit(is_search, index, nfreq_limit, spectra,
@@ -399,17 +392,16 @@ def process_cycle_skipping(nfreq_max, nfreq_min, phase_step, wvec, phi_w):
         smth1 = abs((phi_w[iw + 1] + 2*np.pi) + phi_w[iw - 1] - 2.0*phi_w[iw])
         smth2 = abs((phi_w[iw + 1] - 2*np.pi) + phi_w[iw - 1] - 2.0*phi_w[iw])
 
-        if smth1 < smth and smth1 < smth2 and \
-                        abs(phi_w[iw] - phi_w[iw + 1]) > phase_step:
-            logger.warning('2pi phase shift at {0} w={1} diff={2}'.format(
-                iw, wvec[iw], phi_w[iw] - phi_w[iw + 1]))
-            phi_w[iw + 1:nfreq_max] = phi_w[iw + 1:nfreq_max] + 2*np.pi
+        if abs(phi_w[iw] - phi_w[iw + 1]) > phase_step:
+            if smth1 < smth and smth1 < smth2:
+                logger.warning('2pi phase shift at {0} w={1} diff={2}'.format(
+                    iw, wvec[iw], phi_w[iw] - phi_w[iw + 1]))
+                phi_w[iw + 1:nfreq_max] = phi_w[iw + 1:nfreq_max] + 2*np.pi
 
-        if smth2 < smth and smth2 < smth1 and \
-                        abs(phi_w[iw] - phi_w[iw + 1]) > phase_step:
-            logger.warning('-2pi phase shift at {0} w={1} diff={2}'.format(
-                iw, wvec[iw], phi_w[iw] - phi_w[iw + 1]))
-            phi_w[iw + 1:nfreq_max] = phi_w[iw + 1:nfreq_max] - 2*np.pi
+            if smth2 < smth and smth2 < smth1:
+                logger.warning('-2pi phase shift at {0} w={1} diff={2}'.format(
+                    iw, wvec[iw], phi_w[iw] - phi_w[iw + 1]))
+                phi_w[iw + 1:nfreq_max] = phi_w[iw + 1:nfreq_max] - 2*np.pi
 
 
 def mt_error(d1, d2, deltat, tapers, wvec, df, nlen_f, waterlevel_mtm,
