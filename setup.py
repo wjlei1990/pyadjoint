@@ -62,8 +62,8 @@ setup(
         "Programming Language :: Python",
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.3",
         "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: Implementation :: CPython",
         "Topic :: Utilities",
     ],
@@ -71,7 +71,7 @@ setup(
         "seismology", "adjoint", "science", "tomography", "inversion"
     ],
     install_requires=[
-        "obspy", "flake8", "pytest", "nose", "future>=0.14.1", 'numpy', 'scipy'
+        "obspy>=1.0.0", "flake8", "pytest", "nose", "numpy", "scipy"
     ],
     extras_require={
         "docs": ["sphinx", "ipython", "runipy"]

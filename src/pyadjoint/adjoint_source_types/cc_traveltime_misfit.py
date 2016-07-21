@@ -9,15 +9,20 @@ Cross correlation traveltime misfit.
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function
 
-from obspy.signal.cross_correlation import xcorrPickCorrection
-import numpy as np
-from scipy.integrate import simps
 import warnings
 
-from ..utils import window_taper,  generic_adjoint_source_plot
+import numpy as np
+from scipy.integrate import simps
+from ..utils import window_taper, generic_adjoint_source_plot
+
+# FIXME: remove check over obspy version
+#        Before that happen, all the processing routines in all the packages
+#        should be tested and validated against the newer obspy version
+from obspy import __version__ as obspy_version
+if obspy_version >= u'1.0.1':
+    from obspy.signal.cross_correlation import xcorr_pick_correction
 
 
 VERBOSE_NAME = "Cross Correlation Traveltime Misfit"
@@ -38,7 +43,7 @@ In practice traveltime are measured by cross correlating observed and
 predicted waveforms. This particular implementation here measures cross
 correlation time shifts with subsample accuracy with a fitting procedure
 explained in [Deichmann1992]_. For more details see the documentation of the
-:func:`~obspy.signal.cross_correlation.xcorrPickCorrection` function and the
+:func:`~obspy.signal.cross_correlation.xcorr_pick_correction` function and the
 corresponding
 `Tutorial <http://docs.obspy.org/tutorial/code_snippets/xcorr_pick_correction.html>`_.
 
@@ -149,9 +154,15 @@ def subsample_xcorr_shift(d, s):
     # about here.
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        return xcorrPickCorrection(
-            pick_time, s, pick_time, d, 20.0 * time_shift,
-            20.0 * time_shift, 10.0 * time_shift)[0]
+        # FIXME: remove check over obspy version
+        if obspy_version >= u'1.0.1':
+            return xcorr_pick_correction(
+                pick_time, s, pick_time, d, 20.0 * time_shift,
+                20.0 * time_shift, 10.0 * time_shift)[0]
+        else:
+            warnings.simplefilter("error")
+            warnings.warn("Using xcorr_pick_correction requires obsy version "
+                          "to be at least 1.0.1")
 
 
 def calculate_adjoint_source(observed, synthetic, config, window,
