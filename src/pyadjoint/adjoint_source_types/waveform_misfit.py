@@ -84,6 +84,8 @@ def calculate_adjoint_source(observed, synthetic, config, window,
 
     ret_val = {}
 
+    measurement = []
+
     nlen_data = len(synthetic.data)
     deltat = synthetic.stats.delta
 
@@ -93,6 +95,9 @@ def calculate_adjoint_source(observed, synthetic, config, window,
 
     # loop over time windows
     for wins in window:
+
+        measure_wins = {}
+
         left_window_border = wins[0]
         right_window_border = wins[1]
 
@@ -122,11 +127,19 @@ def calculate_adjoint_source(observed, synthetic, config, window,
         # for some reason the 0.5 (see 2012 measure_adj mannual, P11) is
         # not in misfit definetion in measure_adj
         # misfit_sum += 0.5 * simps(y=diff_w**2, dx=deltat)
-        misfit_sum += simps(y=diff_w**2, dx=deltat)
+        misfit_win = simps(y=diff_w**2, dx=deltat)
+        misfit_sum += misfit_win
 
         adj[left_sample: right_sample] = diff[0:nlen]
 
+        measure_wins["type"] = "wf"
+        measure_wins["difference"] = np.mean(diff)
+        measure_wins["misfit"] = misfit_win
+
+        measurement.append(measure_wins)
+
     ret_val["misfit"] = misfit_sum
+    ret_val["measurement"] = measurement
 
     if adjoint_src is True:
         # Reverse in time
