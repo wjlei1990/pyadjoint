@@ -364,7 +364,7 @@ def calculate_adjoint_source(adj_src_type, observed, synthetic, config,
 
     return AdjointSource(adj_src_type, misfit=misfit,
                          adjoint_source=adjoint_source,
-                         measurement=measurement
+                         measurement=measurement,
                          dt=observed.stats.delta,
                          min_period=config.min_period,
                          max_period=config.max_period,
