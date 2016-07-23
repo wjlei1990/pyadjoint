@@ -169,7 +169,7 @@ def frequency_limit(s, nlen, nlen_f, deltat, df, wtr, ncycle_in_window,
     if ncycle_in_window * min_period > nlen * deltat:
         logger.debug("min_period: %6.0f  window length: %6.0f" %
                      (min_period, nlen*deltat))
-        logger.debug("MTM: rejecting for too few cycles within time window:")
+        logger.info("MTM: rejecting for too few cycles within time window:")
         return (ifreq_min, ifreq_max, False)
 
     fnum = int(nlen_f/2 + 1)
@@ -187,13 +187,14 @@ def frequency_limit(s, nlen, nlen_f, deltat, df, wtr, ncycle_in_window,
                                         ncycle_in_window, nlen, s_spectra,
                                         water_threshold)
 
-    # reject mtm if the chosen frequency band is narrower  than quater of
+    # reject mtm if the chosen frequency band is narrower than quater of
     # multi-taper bandwidth
     if (nfreq_max - nfreq_min) * df < nw / (4.0 * nlen * deltat):
         logger.debug("chosen bandwidth: %f" % ((nfreq_max - nfreq_min) * df))
         logger.debug("half taper bandwidth: %f" % (nw / (4.0 * nlen * deltat)))
-        logger.debug("MTM: rejecting for frequency range"
-                     "narrower than half taper bandwith:")
+        msg = "MTM: rejecting for frequency range narrower"
+        msg = msg + " than quater taper bandwith:"
+        logger.info(msg)
         return (ifreq_min, ifreq_max, False)
 
     return nfreq_min, nfreq_max, True
@@ -266,9 +267,9 @@ def mt_measure_select(nfreq_min, nfreq_max, df, nlen, deltat, dtau_w, dt_fac,
     :param dt_max_scale: float, maximum time shift allowed
     :param cc_tshift: float, c.c. time shift
     :param err_fac: float, percentage of wave period
-    :param err_dt: float, maximum err allowed
+    :param err_dt: float, maximum error allowed
     :param dt_fac: float, percentage of wave period
-    :param dtau_w: float, time dependent travel time measurements from mtm
+    :param dtau_w: float, frequency dependent travel time measurements from mtm
     :param deltat: float, time domain sampling length
     :param nlen: integer, lenght of obsd
     :param df: float, frequency domain sampling length
@@ -279,29 +280,35 @@ def mt_measure_select(nfreq_min, nfreq_max, df, nlen, deltat, dtau_w, dt_fac,
     # If the c.c. measurements is too small
     if abs(cc_tshift) <= deltat:
         msg = "C.C. time shift less than time domain sample length %f" % deltat
-        logger.debug(msg)
+        logger.info(msg)
         return False
 
     # If any mtm measurements is out of the resonable range,
     # switch from mtm to c.c.
     for j in range(nfreq_min, nfreq_max):
 
+        temp_freq = j * df
+        temp_period = 1.0 / temp_freq
+
         # dt larger than 1/dt_fac of the wave period
-        if np.abs(dtau_w[j]) > 1./(dt_fac*j*df):
-            msg = "mtm dt measurements is too large"
-            logger.debug(msg)
+        if np.abs(dtau_w[j]) > 1./(dt_fac * temp_freq):
+            msg = "mtm dt measured at %6.2f sec is too large: %9.3f " % (
+                temp_period, dtau_w[j])
+            logger.info(msg)
             return False
 
         # error larger than 1/err_fac of wave period
-        if err_dt[j] > 1./(err_fac*j*df):
-            msg = "mtm dt error is too large"
-            logger.debug(msg)
+        if err_dt[j] > 1./(err_fac * temp_freq):
+            msg = "mtm dt error measured at %6.2f sec is too large: %9.3f " % (
+                temp_period, err_dt[j])
+            logger.info(msg)
             return False
 
         # dt larger than the maximum time shift allowed
-        if np.abs(dtau_w[j]) > dt_max_scale*abs(cc_tshift):
-            msg = "dt is larger than the maximum time shift allowed"
-            logger.debug(msg)
+        if np.abs(dtau_w[j]) > dt_max_scale * abs(cc_tshift):
+            msg = "mtm dt %9.3f at %6.2f sec is " % (dtau_w[j], temp_period)
+            msg = msg + "larger than the maximum time shift allowed"
+            logger.info(msg)
             return False
 
     return True
@@ -388,17 +395,17 @@ def process_cycle_skipping(nfreq_max, nfreq_min, phase_step, wvec, phi_w):
     # cycle-skipping (check smoothness of phi, add cc measure, future
     # implementation)
     for iw in range(nfreq_min + 1, nfreq_max - 1):
-        smth = abs(phi_w[iw + 1] + phi_w[iw - 1] - 2.0*phi_w[iw])
+        smth0 = abs(phi_w[iw + 1] + phi_w[iw - 1] - 2.0*phi_w[iw])
         smth1 = abs((phi_w[iw + 1] + 2*np.pi) + phi_w[iw - 1] - 2.0*phi_w[iw])
         smth2 = abs((phi_w[iw + 1] - 2*np.pi) + phi_w[iw - 1] - 2.0*phi_w[iw])
 
         if abs(phi_w[iw] - phi_w[iw + 1]) > phase_step:
-            if smth1 < smth and smth1 < smth2:
+            if smth1 < smth0 and smth1 < smth2:
                 logger.warning('2pi phase shift at {0} w={1} diff={2}'.format(
                     iw, wvec[iw], phi_w[iw] - phi_w[iw + 1]))
                 phi_w[iw + 1:nfreq_max] = phi_w[iw + 1:nfreq_max] + 2*np.pi
 
-            if smth2 < smth and smth2 < smth1:
+            if smth2 < smth0 and smth2 < smth1:
                 logger.warning('-2pi phase shift at {0} w={1} diff={2}'.format(
                     iw, wvec[iw], phi_w[iw] - phi_w[iw + 1]))
                 phi_w[iw + 1:nfreq_max] = phi_w[iw + 1:nfreq_max] - 2*np.pi
@@ -692,9 +699,12 @@ def calculate_adjoint_source(observed, synthetic, config, window,
     err_fac = config.err_fac
     dt_max_scale = config.dt_max_scale
 
-    # initialized the adjoint source
+    # initialize the adjoint source
     ret_val_p = {}
     ret_val_q = {}
+
+    # initialize the measurement dictionary
+    measurement = []
 
     nlen_data = len(synthetic.data)
     deltat = synthetic.stats.delta
@@ -709,6 +719,8 @@ def calculate_adjoint_source(observed, synthetic, config, window,
     # Loop over time windows
     # ===
     for wins in window:
+
+        measure_wins = {}
 
         left_window_border = wins[0]
         right_window_border = wins[1]
@@ -828,6 +840,8 @@ def calculate_adjoint_source(observed, synthetic, config, window,
 
         # final decision which misfit will be used for adjoint source.
         if is_mtm:
+            measure_wins["dt"] = np.mean(dtau_mtm[nfreq_min:nfreq_max])
+            measure_wins["dlna"] = np.mean(dlna_mtm[nfreq_min:nfreq_max])
             # calculate multi-taper adjoint source
             fp_t, fq_t, misfit_p, misfit_q =\
                 mt_adj(d, s, deltat, tapers, dtau_mtm, dlna_mtm, df, nlen_f,
@@ -835,11 +849,24 @@ def calculate_adjoint_source(observed, synthetic, config, window,
                        sigma_dt_cc, sigma_dlna_cc, sigma_dtau_mt,
                        sigma_dlna_mt, wtr)
 
+            measure_wins["misfit_dt"] = misfit_p
+            measure_wins["misfit_dlna"] = misfit_q
+            measure_wins["type"] = "mtm"
+
         else:
+            cc_dt = cc_shift * deltat
+            measure_wins["dt"] = cc_dt
+            measure_wins["misfit_dt"] = 0.5 * (cc_dt/sigma_dt_cc)**2
+
+            measure_wins["dlna"] = cc_dlna
+            measure_wins["misfit_dlna"] = 0.5 * (cc_dlna/sigma_dlna_cc)**2
+
+            measure_wins["type"] = "cc"
             # calculate c.c. adjoint source
-            fp_t, fq_t, misfit_p, misfit_q =\
-                cc_adj(s, cc_shift, cc_dlna, deltat, sigma_dt_cc,
-                       sigma_dlna_cc)
+            if adjoint_src is True:
+                fp_t, fq_t, misfit_p, misfit_q =\
+                    cc_adj(s, cc_shift, cc_dlna, deltat, sigma_dt_cc,
+                           sigma_dlna_cc)
 
         # return to original location before windowing
         # initialization
@@ -855,8 +882,14 @@ def calculate_adjoint_source(observed, synthetic, config, window,
         misfit_sum_p += misfit_p
         misfit_sum_q += misfit_q
 
+        measurement.append(measure_wins)
+
     ret_val_p["misfit"] = misfit_sum_p
     ret_val_q["misfit"] = misfit_sum_q
+
+    # output all measurement results regardless the type indicated
+    ret_val_p["measurement"] = measurement
+    ret_val_q["measurement"] = measurement
 
     if adjoint_src is True:
         # Reverse in time and reverse the actual values.
