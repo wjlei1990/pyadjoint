@@ -26,9 +26,9 @@ class AdjointSource(object):
     # a tuple of function, verbose name, and description.
     _ad_srcs = {}
 
-    def __init__(self, adj_src_type, misfit, measurement, dt, min_period,
-                 max_period, component, adjoint_source=None, network=None,
-                 station=None, location=None, starttime=None):
+    def __init__(self, adj_src_type, misfit, dt, min_period, max_period,
+                 component, measurement=None, adjoint_source=None,
+                 network=None, station=None, location=None, starttime=None):
         """
         Class representing an already calculated adjoint source.
 
