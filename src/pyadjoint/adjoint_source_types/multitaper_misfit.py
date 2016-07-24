@@ -399,15 +399,20 @@ def process_cycle_skipping(nfreq_max, nfreq_min, phase_step, wvec, phi_w):
         smth1 = abs((phi_w[iw + 1] + 2*np.pi) + phi_w[iw - 1] - 2.0*phi_w[iw])
         smth2 = abs((phi_w[iw + 1] - 2*np.pi) + phi_w[iw - 1] - 2.0*phi_w[iw])
 
-        if abs(phi_w[iw] - phi_w[iw + 1]) > phase_step:
+        phase_diff = phi_w[iw] - phi_w[iw + 1]
+
+        if abs(phase_diff) > phase_step:
+
+            temp_period = 2.0*np.pi / wvec[iw]
+
             if smth1 < smth0 and smth1 < smth2:
-                logger.warning('2pi phase shift at {0} w={1} diff={2}'.format(
-                    iw, wvec[iw], phi_w[iw] - phi_w[iw + 1]))
+                logger.warning('2pi phase shift at {0} T={1} diff={2}'.format(
+                    iw, temp_period, phase_diff))
                 phi_w[iw + 1:nfreq_max] = phi_w[iw + 1:nfreq_max] + 2*np.pi
 
             if smth2 < smth0 and smth2 < smth1:
-                logger.warning('-2pi phase shift at {0} w={1} diff={2}'.format(
-                    iw, wvec[iw], phi_w[iw] - phi_w[iw + 1]))
+                logger.warning('-2pi phase shift at {0} T={1} diff={2}'.format(
+                    iw, temp_period, phase_diff))
                 phi_w[iw + 1:nfreq_max] = phi_w[iw + 1:nfreq_max] - 2*np.pi
 
 
