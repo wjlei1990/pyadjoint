@@ -171,6 +171,8 @@ def calculate_adjoint_source(observed, synthetic, config, window,
     ret_val_p = {}
     ret_val_q = {}
 
+    measurement = []
+
     nlen_data = len(synthetic.data)
     deltat = synthetic.stats.delta
 
@@ -184,6 +186,9 @@ def calculate_adjoint_source(observed, synthetic, config, window,
     # loop over time windows
     # ===
     for wins in window:
+
+        measure_wins = {}
+
         left_window_border = wins[0]
         right_window_border = wins[1]
 
@@ -214,8 +219,11 @@ def calculate_adjoint_source(observed, synthetic, config, window,
                                         config.dt_sigma_min,
                                         config.dlna_sigma_min)
 
-        misfit_sum_p += 0.5 * (t_shift/sigma_dt) ** 2
-        misfit_sum_q += 0.5 * (cc_dlna/sigma_dlna) ** 2
+        misfit_dt = 0.5 * (t_shift/sigma_dt) ** 2
+        misfit_dlna = 0.5 * (cc_dlna/sigma_dlna) ** 2
+
+        misfit_sum_p += misfit_dt
+        misfit_sum_q += misfit_dlna
 
         dsdt = np.gradient(s, deltat)
         nnorm = simps(y=dsdt*dsdt, dx=deltat)
@@ -225,8 +233,18 @@ def calculate_adjoint_source(observed, synthetic, config, window,
         fq[left_sample:right_sample] =\
             -1.0 * s[:] * cc_dlna / mnorm / sigma_dlna ** 2
 
+        measure_wins["type"] = "cc"
+        measure_wins["dt"] = t_shift
+        measure_wins["misfit_dt"] = misfit_dt
+        measure_wins["misfit_dlan"] = misfit_dlna
+
+        measurement.append(measure_wins)
+
     ret_val_p["misfit"] = misfit_sum_p
     ret_val_q["misfit"] = misfit_sum_q
+
+    ret_val_p["measurement"] = measurement
+    ret_val_q["measurement"] = measurement
 
     if adjoint_src is True:
         ret_val_p["adjoint_source"] = fp[::-1]

@@ -27,8 +27,8 @@ class AdjointSource(object):
     _ad_srcs = {}
 
     def __init__(self, adj_src_type, misfit, dt, min_period, max_period,
-                 component, adjoint_source=None, network=None, station=None,
-                 location=None, starttime=None):
+                 component, measurement=None, adjoint_source=None,
+                 network=None, station=None, location=None, starttime=None):
         """
         Class representing an already calculated adjoint source.
 
@@ -36,6 +36,8 @@ class AdjointSource(object):
         :type adj_src_type:  str
         :param misfit: The misfit value.
         :type misfit: float
+        :param measurement: List of measurement matrices of each window
+        :type measurement: list
         :param dt: The sampling rate of the adjoint source.
         :type dt: float
         :param min_period: The minimum period of the spectral content
@@ -64,6 +66,7 @@ class AdjointSource(object):
         self.adj_src_type = adj_src_type
         self.adj_src_name = self._ad_srcs[adj_src_type][1]
         self.misfit = misfit
+        self.measurement = measurement
         self.dt = dt
         self.min_period = min_period
         self.max_period = max_period
@@ -281,8 +284,9 @@ def calculate_adjoint_source(adj_src_type, observed, synthetic, config,
     if adj_src_type not in AdjointSource._ad_srcs:
         raise PyadjointError(
             "Adjoint Source type '%s' is unknown. Available types: %s" % (
-                adj_src_type, ", ".join(
-                    sorted(AdjointSource._ad_srcs.keys()))))
+                adj_src_type, ", ".join(sorted(AdjointSource._ad_srcs.keys()))
+            )
+        )
 
     fct = AdjointSource._ad_srcs[adj_src_type][0]
 
@@ -297,9 +301,9 @@ def calculate_adjoint_source(adj_src_type, observed, synthetic, config,
     else:
         figure = None
     try:
-        ret_val = fct(observed=observed, synthetic=synthetic,
-                      config=config, window=window,
-                      adjoint_src=adjoint_src, figure=figure, **kwargs)
+        ret_val = fct(observed=observed, synthetic=synthetic, config=config,
+                      window=window, adjoint_src=adjoint_src, figure=figure,
+                      **kwargs)
 
         if plot and plot_filename:
             figure.savefig(plot_filename)
@@ -318,6 +322,11 @@ def calculate_adjoint_source(adj_src_type, observed, synthetic, config,
     if misfit < 0.0:
         warnings.warn("The misfit value is negative. Be cautious!",
                       PyadjointWarning)
+
+    # Get measurement detail for each window
+    # To do:
+    #   Add checks for the measurements
+    measurement = ret_val["measurement"]
 
     if adjoint_src and "adjoint_source" not in ret_val:
         raise PyadjointError("The actual adjoint source was not calculated "
@@ -355,6 +364,7 @@ def calculate_adjoint_source(adj_src_type, observed, synthetic, config,
 
     return AdjointSource(adj_src_type, misfit=misfit,
                          adjoint_source=adjoint_source,
+                         measurement=measurement,
                          dt=observed.stats.delta,
                          min_period=config.min_period,
                          max_period=config.max_period,
