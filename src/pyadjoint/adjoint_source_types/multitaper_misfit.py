@@ -133,8 +133,8 @@ def cc_error(d1, d2, deltat, cc_shift, cc_dlna, sigma_dt_min, sigma_dlna_min):
     sigma_dt = np.sqrt(sigma_dt_top / sigma_dt_bot)
     sigma_dlna = np.sqrt(sigma_dlna_top / sigma_dlna_bot)
 
-    sigma_dt = min(sigma_dt, sigma_dt_min)
-    sigma_dlna = min(sigma_dlna, sigma_dlna_min)
+    sigma_dt = max(sigma_dt, sigma_dt_min)
+    sigma_dlna = max(sigma_dlna, sigma_dlna_min)
 
     return sigma_dt, sigma_dlna
 
