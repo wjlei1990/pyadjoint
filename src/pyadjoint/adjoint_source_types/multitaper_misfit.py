@@ -752,10 +752,12 @@ def calculate_adjoint_source(observed, synthetic, config, window,
                      taper_type=config.taper_type)
 
         # cross-correlation
+        # Note the c.c. value may dramatically change with/whitout the 
+        # tapering in some cases.
         cc_shift = _xcorr_shift(d, s)
         cc_tshift = cc_shift * deltat
         cc_dlna = 0.5 * np.log(sum(d**2) / sum(s**2))
-
+    
         # uncertainty estimate based on cross-correlations
         sigma_dt_cc = 1.0
         sigma_dlna_cc = 1.0
