@@ -868,10 +868,9 @@ def calculate_adjoint_source(observed, synthetic, config, window,
 
             measure_wins["type"] = "cc"
             # calculate c.c. adjoint source
-            if adjoint_src is True:
-                fp_t, fq_t, misfit_p, misfit_q =\
-                    cc_adj(s, cc_shift, cc_dlna, deltat, sigma_dt_cc,
-                           sigma_dlna_cc)
+            fp_t, fq_t, misfit_p, misfit_q =\
+                cc_adj(s, cc_shift, cc_dlna, deltat, sigma_dt_cc,
+                       sigma_dlna_cc)
 
         # return to original location before windowing
         # initialization
@@ -896,7 +895,7 @@ def calculate_adjoint_source(observed, synthetic, config, window,
     ret_val_p["measurement"] = measurement
     ret_val_q["measurement"] = measurement
 
-    if adjoint_src is True:
+    if adjoint_src:
         # Reverse in time and reverse the actual values.
         ret_val_p["adjoint_source"] = fp[::-1]
         ret_val_q["adjoint_source"] = fq[::-1]

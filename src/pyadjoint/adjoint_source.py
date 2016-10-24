@@ -77,6 +77,11 @@ class AdjointSource(object):
         self.starttime = starttime
         self.adjoint_source = adjoint_source
 
+    @property
+    def id(self):
+        return "%s.%s.%s.%s" % (self.network, self.station, self.location,
+                                self.component)
+
     def __str__(self):
         if self.network and self.station:
             station = " at station %s.%s" % (self.network, self.station)
