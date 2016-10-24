@@ -133,8 +133,8 @@ def cc_error(d1, d2, deltat, cc_shift, cc_dlna, sigma_dt_min, sigma_dlna_min):
     sigma_dt = np.sqrt(sigma_dt_top / sigma_dt_bot)
     sigma_dlna = np.sqrt(sigma_dlna_top / sigma_dlna_bot)
 
-    sigma_dt = min(sigma_dt, sigma_dt_min)
-    sigma_dlna = min(sigma_dlna, sigma_dlna_min)
+    sigma_dt = max(sigma_dt, sigma_dt_min)
+    sigma_dlna = max(sigma_dlna, sigma_dlna_min)
 
     return sigma_dt, sigma_dlna
 
@@ -752,10 +752,12 @@ def calculate_adjoint_source(observed, synthetic, config, window,
                      taper_type=config.taper_type)
 
         # cross-correlation
+        # Note the c.c. value may dramatically change with/whitout the 
+        # tapering in some cases.
         cc_shift = _xcorr_shift(d, s)
         cc_tshift = cc_shift * deltat
         cc_dlna = 0.5 * np.log(sum(d**2) / sum(s**2))
-
+    
         # uncertainty estimate based on cross-correlations
         sigma_dt_cc = 1.0
         sigma_dlna_cc = 1.0
@@ -871,6 +873,12 @@ def calculate_adjoint_source(observed, synthetic, config, window,
             fp_t, fq_t, misfit_p, misfit_q =\
                 cc_adj(s, cc_shift, cc_dlna, deltat, sigma_dt_cc,
                        sigma_dlna_cc)
+
+        # Taper signals following the SAC taper command
+        window_taper(fp_t[0:nlen], taper_percentage=config.taper_percentage,
+                     taper_type=config.taper_type)
+        window_taper(fq_t[0:nlen], taper_percentage=config.taper_percentage,
+                     taper_type=config.taper_type)
 
         # return to original location before windowing
         # initialization
