@@ -16,9 +16,8 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 from scipy.integrate import simps
 
-from ..utils import generic_adjoint_source_plot
-from ..utils import window_taper
-from ..config import Config_waveform
+from ..utils import generic_adjoint_source_plot, window_taper
+from ..config import ConfigWaveForm
 
 
 # This is the verbose and pretty name of the adjoint source defined in this
@@ -83,7 +82,7 @@ ADDITIONAL_PARAMETERS = r"""
 def calculate_adjoint_source(observed, synthetic, config, window,
                              adjoint_src, figure):  # NOQA
 
-    if not isinstance(config, Config_waveform):
+    if not isinstance(config, ConfigWaveForm):
         raise ValueError("Wrong configure parameters for waveform "
                          "adjoint source")
 

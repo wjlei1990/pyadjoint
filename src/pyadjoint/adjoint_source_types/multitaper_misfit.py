@@ -17,9 +17,8 @@ from scipy.integrate import simps
 
 from .. import logger
 # from . import PyadjointError, PyadjointWarning
-from ..utils import generic_adjoint_source_plot
-from ..utils import window_taper
-from ..config import Config_multitaper
+from ..utils import generic_adjoint_source_plot, window_taper
+from ..config import ConfigMultiTaper
 from ..dpss import dpss_windows
 
 
@@ -679,7 +678,7 @@ def calculate_adjoint_source(observed, synthetic, config, window,
     # Thus pyadjoint has a convenience function to assist with that.
     # The next block tapers both observed and synthetic data.
 
-    if not isinstance(config, Config_multitaper):
+    if not isinstance(config, ConfigMultiTaper):
         raise ValueError("Wrong configure parameters for multi-taper "
                          "adjoint source")
 

@@ -13,7 +13,7 @@ Configuration object for pyadjoint.
 from __future__ import absolute_import, division, print_function
 
 
-class Config_multitaper(object):
+class ConfigMultiTaper(object):
     def __init__(self, min_period, max_period,
                  lnpt=15,
                  transfunc_waterlevel=1.0E-10,
@@ -162,7 +162,7 @@ class Config_multitaper(object):
         self.use_mt_error = use_mt_error
 
 
-class Config_waveform(object):
+class ConfigWaveForm(object):
     def __init__(self,
                  taper_type='hann',
                  taper_percentage=0.3):
@@ -171,7 +171,7 @@ class Config_waveform(object):
         self.taper_percentage = taper_percentage
 
 
-class Config_crosscorrelation(object):
+class ConfigCrossCorrelation(object):
     def __init__(self,
                  taper_type='hann',
                  taper_percentage=0.3,
@@ -186,9 +186,9 @@ class Config_crosscorrelation(object):
         self.dlna_sigma_min = dlna_sigma_min
 
 
-class Config_doubledifference(object):
+class ConfigDoubleDifference(object):
     pass
 
 
-class Config_instanteneousphase(object):
+class ConfigInstanteneousPhase(object):
     pass
