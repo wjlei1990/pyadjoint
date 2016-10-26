@@ -19,6 +19,7 @@ from .. import logger
 # from . import PyadjointError, PyadjointWarning
 from ..utils import generic_adjoint_source_plot
 from ..utils import window_taper
+from ..config import Config_multitaper
 from ..dpss import dpss_windows
 
 
@@ -677,6 +678,10 @@ def calculate_adjoint_source(observed, synthetic, config, window,
     # All adjoint sources will need some kind of windowing taper.
     # Thus pyadjoint has a convenience function to assist with that.
     # The next block tapers both observed and synthetic data.
+
+    if not isinstance(config, Config_multitaper):
+        raise ValueError("Wrong configure parameters for multi-taper "
+                         "adjoint source")
 
     # frequencies points for FFT
     nlen_f = 2**config.lnpt

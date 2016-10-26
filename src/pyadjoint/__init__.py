@@ -46,4 +46,10 @@ logger.addHandler(ch)
 
 # Main objects and functions available at the top level.
 from .adjoint_source import AdjointSource, calculate_adjoint_source  # NOQA
-from .config import Config  # NOQA
+
+# load configure
+from .config import Config_multitaper # NOQA
+from .config import Config_waveform # NOQA
+from .config import Config_crosscorrelation # NOQA
+from .config import Config_doubledifference # NOQA
+from .config import Config_instanteneousphase # NOQA

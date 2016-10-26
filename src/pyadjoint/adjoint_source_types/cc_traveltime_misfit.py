@@ -9,13 +9,17 @@ Cross correlation traveltime misfit.
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import warnings
-
 import numpy as np
 from scipy.integrate import simps
-from ..utils import window_taper, generic_adjoint_source_plot
+
+from ..utils import window_taper
+from ..utils import generic_adjoint_source_plot
+from ..config import Config_crosscorrelation
 
 # FIXME: remove check over obspy version
 #        Before that happen, all the processing routines in all the packages
@@ -167,6 +171,10 @@ def subsample_xcorr_shift(d, s):
 
 def calculate_adjoint_source(observed, synthetic, config, window,
                              adjoint_src, figure):  # NOQA
+
+    if not isinstance(config, Config_crosscorrelation):
+        raise ValueError("Wrong configure parameters for cross correlation "
+                         "adjoint source")
 
     ret_val_p = {}
     ret_val_q = {}
