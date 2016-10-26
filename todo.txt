@@ -1,0 +1,15 @@
+TO DO LIST:
+===========
+measure_adj:
+------------
+    1. re-window the data from window-tapered data and apply cc dt and dlnA
+    DONE but not committed 
+
+pyadjoint:
+----------
+    1. DONE - Creat new class config for different measurements.
+
+    2. Add modoule test 
+
+    3. Move shared functions from multi-taper and cc to separate files for better organizaton
+
