@@ -171,6 +171,7 @@ def frequency_limit(s, nlen, nlen_f, deltat, df, wtr, ncycle_in_window,
                      (min_period, nlen*deltat))
         logger.info("MTM: rejecting for too few cycles within time window:")
         return (ifreq_min, ifreq_max, False)
+    logger.debug("input freq bound: [%d %d]" % (ifreq_min, ifreq_max))
 
     fnum = int(nlen_f/2 + 1)
     s_spectra = np.fft.fft(s, nlen_f) * deltat
@@ -186,6 +187,8 @@ def frequency_limit(s, nlen, nlen_f, deltat, df, wtr, ncycle_in_window,
     nfreq_min = get_min_frequency_limit(deltat, df, fnum, i_ampmax, ifreq_min,
                                         ncycle_in_window, nlen, s_spectra,
                                         water_threshold)
+
+    logger.debug("new freq bound: [%d %d]" % (nfreq_min, nfreq_max))
 
     # reject mtm if the chosen frequency band is narrower than quater of
     # multi-taper bandwidth
@@ -206,10 +209,13 @@ def get_min_frequency_limit(deltat, df, fnum, i_ampmax, ifreq_min,
     nfreq_min = 0
     is_search = True
 
-    for iw in range(fnum - 1, 0, -1):
-        if iw < i_ampmax:
-            nfreq_min = search_frequency_limit(is_search, iw, nfreq_min,
-                                               s_spectra, water_threshold)
+    # === Youyi Ruan 11/03/2016:
+    #    to keep it consistent with measure_adj and not search the minimum
+    #    frequency bound.
+    # for iw in range(fnum - 1, 0, -1):
+    #    if iw < i_ampmax:
+    #        nfreq_min = search_frequency_limit(is_search, iw, nfreq_min,
+    #                                           s_spectra, water_threshold)
 
     # assume there are at least N cycles within the window
     return max(nfreq_min,
@@ -422,6 +428,7 @@ def mt_error(d1, d2, deltat, tapers, wvec, df, nlen_f, waterlevel_mtm,
 
     nlen_t = len(d1)
     ntaper = len(tapers[0])
+    logger.debug("Number of tapers used: %d" % ntaper)
 
     # Jacknife MT estimates
     # initialization
@@ -566,6 +573,11 @@ def mt_adj(d1, d2, deltat, tapers, dtau_mtm, dlna_mtm, df, nlen_f,
     # normalization factor, factor 2 is needed for the integration from
     # -inf to inf
     ffac = 2.0 * df * np.sum(w_taper[nfreq_min: nfreq_max])
+    logger.debug("Frequency bound (idx): [%d %d] (Hz) [%f %f]" %
+                 (nfreq_min, nfreq_max-1,
+                 df*(nfreq_min-1), df*(nfreq_max)))
+    logger.debug("Frequency domain taper normalization coeff : %f " % ffac)
+    logger.debug("Frequency domain samling length df =  %f " % df)
     if ffac <= 0.0:
         logger.warning("frequency band too narrow:")
         logger.warning("fmin=%f fmax=%f ffac=%f" %
@@ -718,6 +730,8 @@ def calculate_adjoint_source(observed, synthetic, config, window,
     nlen_data = len(synthetic.data)
     deltat = synthetic.stats.delta
 
+    logger.debug("deltat (time domain sampling) : %f " % deltat)
+
     fp = np.zeros(nlen_data)
     fq = np.zeros(nlen_data)
 
@@ -742,6 +756,11 @@ def calculate_adjoint_source(observed, synthetic, config, window,
         nlen = int(np.floor((right_window_border - left_window_border) /
                    deltat)) + 1
         right_sample = left_sample + nlen
+
+        logger.debug("left_window_border: %f right_window_border %f" %
+                     (left_window_border, right_window_border))
+        logger.debug("left_sample: %d, right_sample: %d, nlen: %d " %
+                     (left_sample, right_sample, nlen))
 
         d = np.zeros(nlen)
         s = np.zeros(nlen)
@@ -801,6 +820,8 @@ def calculate_adjoint_source(observed, synthetic, config, window,
         freq = np.fft.fftfreq(n=nlen_f, d=observed.stats.delta)
         df = freq[1] - freq[0]
         wvec = freq * 2 * np.pi
+
+        logger.debug("delta_f (frequency sampling): %f " % df)
         # todo: check again see if dw is not used.
         # dw = wvec[1] - wvec[0]
 
@@ -817,7 +838,7 @@ def calculate_adjoint_source(observed, synthetic, config, window,
             ntaper = config.num_taper
 
             # generate discrete prolate slepian sequences
-            tapers = dpss_windows(nlen, nw, ntaper)[0].T
+            tapers = dpss_windows(nlen, nw, ntaper, low_bias=False)[0].T
 
             # normalization
             tapers = tapers * np.sqrt(nlen)
@@ -879,10 +900,10 @@ def calculate_adjoint_source(observed, synthetic, config, window,
                        sigma_dlna_cc)
 
         # Taper signals following the SAC taper command
-        window_taper(fp_t[0:nlen], taper_percentage=config.taper_percentage,
-                     taper_type=config.taper_type)
-        window_taper(fq_t[0:nlen], taper_percentage=config.taper_percentage,
-                     taper_type=config.taper_type)
+        # window_taper(fp_t[0:nlen], taper_percentage=config.taper_percentage,
+        #              taper_type=config.taper_type)
+        # window_taper(fq_t[0:nlen], taper_percentage=config.taper_percentage,
+        #              taper_type=config.taper_type)
 
         # return to original location before windowing
         # initialization
