@@ -900,10 +900,10 @@ def calculate_adjoint_source(observed, synthetic, config, window,
                        sigma_dlna_cc)
 
         # Taper signals following the SAC taper command
-        # window_taper(fp_t[0:nlen], taper_percentage=config.taper_percentage,
-        #              taper_type=config.taper_type)
-        # window_taper(fq_t[0:nlen], taper_percentage=config.taper_percentage,
-        #              taper_type=config.taper_type)
+        window_taper(fp_t[0:nlen], taper_percentage=config.taper_percentage,
+                     taper_type=config.taper_type)
+        window_taper(fq_t[0:nlen], taper_percentage=config.taper_percentage,
+                     taper_type=config.taper_type)
 
         # return to original location before windowing
         # initialization
