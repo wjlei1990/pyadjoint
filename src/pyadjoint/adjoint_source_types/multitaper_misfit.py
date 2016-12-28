@@ -13,7 +13,6 @@ Multitaper based phase and amplitude misfit and adjoint source.
 from __future__ import absolute_import, division, print_function
 
 import numpy as np
-import sys
 from scipy.integrate import simps
 
 from .. import logger
@@ -851,7 +850,10 @@ def calculate_adjoint_source(observed, synthetic, config, window,
                 logger.warning("switch from mtm to c.c.")
                 logger.debug("eigen values: %s" % eigens)
                 is_mtm = False
-    
+
+        # check again if tapers are properly generated
+        # In rare cases (e.g., nw=2.5 and nlen=61 or nw=4.0 nlen=15) certian
+        # eigen values can not be found and associated eigen taper will be NaN
         if is_mtm:
             tapers = tapert.T
 
