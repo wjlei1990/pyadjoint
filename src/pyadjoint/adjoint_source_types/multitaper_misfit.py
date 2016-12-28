@@ -208,7 +208,7 @@ def get_min_frequency_limit(deltat, df, fnum, i_ampmax, ifreq_min,
                             ncycle_in_window, nlen, s_spectra,
                             water_threshold):
     nfreq_min = 0
-    is_search = True
+    # is_search = True
 
     # === Youyi Ruan 11/03/2016:
     #    to keep it consistent with measure_adj and not search the minimum
@@ -576,7 +576,7 @@ def mt_adj(d1, d2, deltat, tapers, dtau_mtm, dlna_mtm, df, nlen_f,
     ffac = 2.0 * df * np.sum(w_taper[nfreq_min: nfreq_max])
     logger.debug("Frequency bound (idx): [%d %d] (Hz) [%f %f]" %
                  (nfreq_min, nfreq_max-1,
-                 df*(nfreq_min-1), df*(nfreq_max)))
+                  df*(nfreq_min-1), df*(nfreq_max)))
     logger.debug("Frequency domain taper normalization coeff : %f " % ffac)
     logger.debug("Frequency domain samling length df =  %f " % df)
     if ffac <= 0.0:
