@@ -852,8 +852,8 @@ def calculate_adjoint_source(observed, synthetic, config, window,
                 is_mtm = False
 
         # check again if tapers are properly generated
-        # In rare cases (e.g., nw=2.5 and nlen=61 or nw=4.0 nlen=15) certian
-        # eigen values can not be found and associated eigen taper will be NaN
+        # In rare cases (e.g., [nw=2.5, nlen=61] or [nw=4.0, nlen=15]) certian
+        # eigen value can not be found and associated eigen taper will be NaN
         if is_mtm:
             tapers = tapert.T
 
