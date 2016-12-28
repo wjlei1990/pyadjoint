@@ -13,6 +13,7 @@ Multitaper based phase and amplitude misfit and adjoint source.
 from __future__ import absolute_import, division, print_function
 
 import numpy as np
+import sys
 from scipy.integrate import simps
 
 from .. import logger
@@ -284,7 +285,7 @@ def mt_measure_select(nfreq_min, nfreq_max, df, nlen, deltat, dtau_w, dt_fac,
     """
 
     # If the c.c. measurements is too small
-    if abs(cc_tshift) <= deltat:
+    if abs(cc_tshift) < deltat:
         msg = "C.C. time shift less than time domain sample length %f" % deltat
         logger.info(msg)
         return False
@@ -757,6 +758,11 @@ def calculate_adjoint_source(observed, synthetic, config, window,
                    deltat)) + 1
         right_sample = left_sample + nlen
 
+        logger.debug("==== %s.%s.%s.%s ====" % (observed.stats.network,
+                                                observed.stats.station,
+                                                observed.stats.location,
+                                                observed.stats.channel))
+
         logger.debug("left_window_border: %f right_window_border %f" %
                      (left_window_border, right_window_border))
         logger.debug("left_sample: %d, right_sample: %d, nlen: %d " %
@@ -838,7 +844,16 @@ def calculate_adjoint_source(observed, synthetic, config, window,
             ntaper = config.num_taper
 
             # generate discrete prolate slepian sequences
-            tapers = dpss_windows(nlen, nw, ntaper, low_bias=False)[0].T
+            tapert, eigens = dpss_windows(nlen, nw, ntaper, low_bias=False)
+
+            if not np.isfinite(eigens).all():
+                logger.warning("Error constructing dpss tapers")
+                logger.warning("switch from mtm to c.c.")
+                logger.debug("eigen values: %s" % eigens)
+                is_mtm = False
+    
+        if is_mtm:
+            tapers = tapert.T
 
             # normalization
             tapers = tapers * np.sqrt(nlen)
