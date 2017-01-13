@@ -238,10 +238,18 @@ def calculate_adjoint_source(observed, synthetic, config, window,
         fq[left_sample:right_sample] =\
             -1.0 * s[:] * cc_dlna / mnorm / sigma_dlna ** 2
 
+        # Taper signals following the SAC taper command
+        window_taper(fp[left_sample:right_sample],
+                     taper_percentage=config.taper_percentage,
+                     taper_type=config.taper_type)
+        window_taper(fq[left_sample:right_sample],
+                     taper_percentage=config.taper_percentage,
+                     taper_type=config.taper_type)
+
         measure_wins["type"] = "cc"
         measure_wins["dt"] = t_shift
         measure_wins["misfit_dt"] = misfit_dt
-        measure_wins["misfit_dlan"] = misfit_dlna
+        measure_wins["misfit_dlna"] = misfit_dlna
 
         measurement.append(measure_wins)
 
