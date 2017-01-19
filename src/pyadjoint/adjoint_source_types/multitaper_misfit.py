@@ -815,10 +815,10 @@ def calculate_adjoint_source(observed, synthetic, config, window,
                          taper_type=config.taper_type)
             is_mtm = True
         else:
-            # when the shifted window is out of bound 
+            # when the shifted window is out of bound
             logger.warning("win = [%f, %f]" % (left_window_border,
                                                right_window_border))
-            logger.warning("c.c. shift: %f" % cc_tshift )
+            logger.warning("c.c. shift: %f" % cc_tshift)
             logger.warning("c.c. shifted window is out of bound")
             logger.warning("switch from mtm to c.c.")
             is_mtm = False
@@ -842,8 +842,9 @@ def calculate_adjoint_source(observed, synthetic, config, window,
         # frequency limit for calculations.
         if is_mtm:
             nfreq_min, nfreq_max, is_mtm = \
-                frequency_limit(s, nlen, nlen_f, deltat, df, wtr, ncycle_in_window,
-                                min_period, max_period, config.mt_nw)
+                frequency_limit(s, nlen, nlen_f, deltat, df, wtr,
+                                ncycle_in_window, min_period,
+                                max_period, config.mt_nw)
 
         if is_mtm:
             # Set the Rayleigh bin parameter (determin taper bandwithin
