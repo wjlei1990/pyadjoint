@@ -813,15 +813,21 @@ def calculate_adjoint_source(observed, synthetic, config, window,
             d *= np.exp(-cc_dlna)
             window_taper(d, taper_percentage=config.taper_percentage,
                          taper_type=config.taper_type)
+            is_mtm = True
         else:
-            raise Exception
+            # when the shifted window is out of bound 
+            logger.warning("win = [%f, %f]" % (left_window_border,
+                                               right_window_border))
+            logger.warning("c.c. shift: %f" % cc_tshift )
+            logger.warning("c.c. shifted window is out of bound")
+            logger.warning("switch from mtm to c.c.")
+            is_mtm = False
 
         # ===
         # Make decision wihich method to use: c.c. or multi-taper
         # always starts from multi-taper, if it doesn't work then
         # switch to cross correlation misfit
         # ===
-        is_mtm = True
 
         # frequencies for FFT
         freq = np.fft.fftfreq(n=nlen_f, d=observed.stats.delta)
@@ -834,9 +840,10 @@ def calculate_adjoint_source(observed, synthetic, config, window,
 
         # check window if okay for mtm measurements, and then find min/max
         # frequency limit for calculations.
-        nfreq_min, nfreq_max, is_mtm = \
-            frequency_limit(s, nlen, nlen_f, deltat, df, wtr, ncycle_in_window,
-                            min_period, max_period, config.mt_nw)
+        if is_mtm:
+            nfreq_min, nfreq_max, is_mtm = \
+                frequency_limit(s, nlen, nlen_f, deltat, df, wtr, ncycle_in_window,
+                                min_period, max_period, config.mt_nw)
 
         if is_mtm:
             # Set the Rayleigh bin parameter (determin taper bandwithin
