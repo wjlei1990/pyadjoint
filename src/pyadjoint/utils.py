@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
 import obspy
+import json
 
 EXAMPLE_DATA_PDIFF = (800, 900)
 EXAMPLE_DATA_SDIFF = (1500, 1600)
@@ -185,6 +186,52 @@ def get_example_data():
     synthetic.sort()
 
     return observed, synthetic
+
+
+def get_example_sac_data():
+    """
+    Helper function returning example SAC data for Pyadjoint. The SAC data
+    is used so the measure_adj package can use it for benchmark.
+    """
+    path = os.path.join(
+        os.path.dirname(inspect.getfile(inspect.currentframe())),
+        "example_data")
+    observed = obspy.read(os.path.join(path,
+                                       "IU.KBL..BHZ.proc_obsd_60_100.sac"))
+    observed.sort()
+    synthetic = obspy.read(os.path.join(path,
+                                        "IU.KBL.S3.MXZ.proc_synt_60_100.sac"))
+    synthetic.sort()
+
+    return observed, synthetic
+
+
+def get_example_mt_adjsrc():
+    """
+    example adjoint source in ascii
+    """
+    path = os.path.join(
+        os.path.dirname(inspect.getfile(inspect.currentframe())),
+        "example_data")
+    adjsrc_dt = np.loadtxt(os.path.join(path,
+                                        "IU.KBL..BHZ.mt.dt.adj"))
+    adjsrc_am = np.loadtxt(os.path.join(path,
+                                        "IU.KBL..BHZ.mt.am.adj"))
+
+    return adjsrc_dt[:, 1], adjsrc_am[:, 1]
+
+
+def get_example_mt_measurement():
+    """
+    example measurement in json
+    """
+    path = os.path.join(
+        os.path.dirname(inspect.getfile(inspect.currentframe())),
+        "example_data")
+    filename = os.path.join(path, "IU.KBL..BHZ.mt.measurement.json")
+
+    with open(filename) as fh:
+        return json.load(fh)
 
 
 def generic_adjoint_source_plot(observed, synthetic, adjoint_source, misfit,
