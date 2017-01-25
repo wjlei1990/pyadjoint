@@ -82,9 +82,6 @@ def test_normal_adjoint_source_calculation(adj_src):
                                                adjoint_src=True,
                                                plot=False)
 
-    # a_src = pyadjoint.calculate_adjoint_source(
-    #    adj_src, obs, syn, 20, 100, start, end)
-
     assert a_src.adjoint_source.any()
     assert a_src.misfit >= 0.0
 
@@ -141,12 +138,7 @@ def test_no_adjoint_src_calculation_is_honored(adj_src):
         adj_src_type=adj_src, observed=obs,
         synthetic=syn, config=config, window=window,
         adjoint_src=False, plot=False)
-    # start, end = pyadjoint.utils.EXAMPLE_DATA_PDIFF
-    # a_src = pyadjoint.calculate_adjoint_source(
-    #    adj_src, obs, syn, 20, 100, start, end, adjoint_src=False)
-
     assert a_src.adjoint_source is None
-    # assert a_src.misfit >= 0.0
 
     # But the misfit should nonetheless be identical as if the adjoint
     # source would have been calculated.
