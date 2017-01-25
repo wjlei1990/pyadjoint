@@ -61,9 +61,8 @@ def test_multitaper_adjoint_source():
 
     window = [[3313.6, 3756.0]]
 
-    tol_corr = 0.99
-    tol_err = 3.E-02
-#    rtol = 1.0E-05
+    tol_corr = 0.9999
+    tol_err = 3.E-05
 
     config = pyadjoint.ConfigMultiTaper(min_period=60.0,
                                         max_period=100.0,
@@ -100,7 +99,6 @@ def test_multitaper_adjoint_source():
 
         assert isinstance(a_src.adjoint_source, np.ndarray)
 
-        print(len(a_src.adjoint_source), len(adjsrc_dt_ref))
         if catlog == "dt":
             corr_min, err_max = compare_error(a_src.adjoint_source,
                                               adjsrc_dt_ref[::-1])
