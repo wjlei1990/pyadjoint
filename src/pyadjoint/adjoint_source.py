@@ -151,11 +151,11 @@ class AdjointSource(object):
         """
         Write the adjoint source for SPECFEM.
         """
-        l = len(self.adjoint_source)
+        _l = len(self.adjoint_source)
 
-        to_write = np.empty((l, 2))
+        to_write = np.empty((_l, 2))
 
-        to_write[:, 0] = np.linspace(0, (l - 1) * self.dt, l)
+        to_write[:, 0] = np.linspace(0, (_l - 1) * self.dt, _l)
         to_write[:, 0] += time_offset
         # SPECFEM expects non-time reversed adjoint sources.
         to_write[:, 1] = self.adjoint_source[::-1]
@@ -192,9 +192,9 @@ class AdjointSource(object):
         from pyasdf.exceptions import NoStationXMLForStation
 
         # Convert the adjoint source to SPECFEM format
-        l = len(self.adjoint_source)
-        specfem_adj_source = np.empty((l, 2))
-        specfem_adj_source[:, 0] = np.linspace(0, (l - 1) * self.dt, l)
+        _l = len(self.adjoint_source)
+        specfem_adj_source = np.empty((_l, 2))
+        specfem_adj_source[:, 0] = np.linspace(0, (_l - 1) * self.dt, _l)
         specfem_adj_source[:, 1] = time_offset
         specfem_adj_source[:, 1] = self.adjoint_source[::-1]
 
